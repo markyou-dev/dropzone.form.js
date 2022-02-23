@@ -16,15 +16,14 @@ $dropzoneForm = (function () {
     var _addAllowConfig = [
         'dictRemoveFile',
         'dictDefaultMessage',
-        'dictFileTooBig',
     ];
 
     // callback
     var _callback = {
-        beforeSubmit: function (e, _form, _submitData) { // submit before action
+        beforeSubmit: function (_form, _submitData) { // submit before action
 
         },
-        afterSubmit: function (e, _form, response) { // submit after action
+        afterSubmit: function (_form, response) { // submit after action
 
         },
         getParams: function (el) { // // get Param init
@@ -50,6 +49,7 @@ $dropzoneForm = (function () {
         autoProcessQueue: false,
         addRemoveLinks: true,
         acceptedFiles: 'image/*',
+        dictFileTooBig: '파일용량 초과 10MB 이하로 다시 업로드하세요',
         init: function (o) {
             var myDropzone = this; // closure
             var params = myDropzone.options.params;
@@ -102,7 +102,7 @@ $dropzoneForm = (function () {
             };
 
             // submit before action
-            var beforeAction = _callback.beforeSubmit(e, _form, _submitData);
+            var beforeAction = _callback.beforeSubmit(_form, _submitData);
             if (beforeAction === false) {
                 return false;
             }
@@ -117,7 +117,7 @@ $dropzoneForm = (function () {
                 contentType: false,
                 success: function (response) {
                     // submit after action
-                    _callback.afterSubmit(e, _form, response);
+                    _callback.afterSubmit(_form, response);
                 },
                 error: function (err) {
                     alert('error : ' + err);
@@ -152,24 +152,26 @@ $dropzoneForm = (function () {
             // action url
             _config.url = _form.action_url;
 
-            // callback (request before)
-            if (callback.beforeSubmit) {
-                _callback.beforeSubmit = callback.beforeSubmit;
-            }
+            if (callback) {
+                // callback (request before)
+                if (callback.beforeSubmit) {
+                    _callback.beforeSubmit = callback.beforeSubmit;
+                }
 
-            // callback (request after)
-            if (callback.afterSubmit) {
-                _callback.afterSubmit = callback.afterSubmit;
-            }
+                // callback (request after)
+                if (callback.afterSubmit) {
+                    _callback.afterSubmit = callback.afterSubmit;
+                }
 
-            // callback (params)
-            if (callback.getParams) {
-                _callback.getParams = callback.getParams;
-            }
+                // callback (params)
+                if (callback.getParams) {
+                    _callback.getParams = callback.getParams;
+                }
 
-            // callback (get list)
-            if (callback.getList) {
-                _callback.getList = callback.getList;
+                // callback (get list)
+                if (callback.getList) {
+                    _callback.getList = callback.getList;
+                }
             }
 
             // added config
