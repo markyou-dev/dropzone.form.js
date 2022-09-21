@@ -67,58 +67,6 @@ dropzone.js (5.7.0 version):
     </form>
     <!-- ./form -->
     
-##### 3. dropzone.form 을 초기화해줍니다.
-
-    $dropzoneForm.init({form element id}, {dropzone element class}, {callback functions}, {options}
-
-Parameters 상세설명    
-1. form element id : 사용할 form 의 id
-2. dropzone element class : dropzone 으로 사용할 class
-3. callback functions : 콜백함수 (아래의 3-1 참고)
-4. options : 기타옵션 (아래의 3-2 참고)
-    
-##### 3-1. 콜백함수
-
-    var _callback = {
-        beforeSubmit: function (f) {}, // submit 전 동작 ()
-        afterSubmit: function (f, response) {}, // submit 후 동작
-        getParams: function (el) {}, // 파라미터 지정 (getList 사용시)
-        getList: function (myDropzone) {} // 이미 등록된 파일리스트를 바인딩시킴
-    };
-    
-Function 상세설명
-1. beforeSubmit (form Element)
-2. afterSubmit (form Element, response data)
-3. getParams (dropzone Element)
-4. getList (dropzone Object)
-    
-##### 3-2. 옵션
-
-    var _options = {
-        dictRemoveFile: '[삭제]', // 삭제버튼
-        dictDefaultMessage: '업로드할 이미지를 드래그해서 올려주세요.', // 드래그 영역 문구
-    };
-    
-##### 4. 삭제기능 사용시 (옵션)
-    
-    Callback -> getList 에서 file id 를 지정해줘야 한다.
-    
-        // ajax response 부분
-        var list = response;
-        $.each(list, function (idx, item) {
-            var filepath = item.src;
-            var mockFile = {
-                id: item.id, // id 지정
-                name: paramName,
-            };
-            myDropzone.emit("addedfile", mockFile);
-            myDropzone.emit("thumbnail", mockFile, filepath);
-            myDropzone.emit("complete", mockFile);
-        });
- 
-file id 가 있는경우 삭제버튼을 클릭하고    
-submit 시 deleteFileIds[] 배열로 파라미터 요청된다.
-    
 ## 예제 (demo 참고)
 
     // dropzone form init
