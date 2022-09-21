@@ -39,12 +39,12 @@ dropzone.js (5.7.0 version):
         <div id="body">
             <div>
                 [slide1]
-                <div class="dropzone" data-name="slide1"></div>
+                <div class="dropzone" name="slide1"></div>
 
             </div>
             <div>
                 [slide2]
-                <div class="dropzone" data-name="slide2"></div>
+                <div class="dropzone" name="slide2"></div>
             </div>
         </div>
         <!-- ./body -->
@@ -121,17 +121,8 @@ submit 시 deleteFileIds[] 배열로 파라미터 요청된다.
     
 ## 예제 (demo 참고)
 
-    // 콜백함수 지정
-    var _callback = {
-        beforeSubmit: function (_form) { // submit 전 동작
-            if (!confirm('before Submit Action!')) {
-                return false;
-            }
-        },
-        afterSubmit: function (_form, response) { // submit 후 동작
-            console.log(response);
-            return false;
-        },
+    // dropzone form init
+    $dropzoneForm.init("#form1", ".dropzone", {
         getParams: function (el) { // 파라미터 지정 (getList 사용시)
             return {
                 act: 'getList',
@@ -168,17 +159,17 @@ submit 시 deleteFileIds[] 배열로 파라미터 요청된다.
                     alert('error  : ' + err);
                 }
             });
+        },
+        beforeSubmit: function (e, _form, _formData) { // submit 전 동작
+            if (!confirm('before Submit Action!')) {
+                return false;
+            }
+        },
+        afterSubmit: function (e, _form, response) { // submit 후 동작
+            console.log(response);
+            return false;
         }
-    };
-
-    // 수정할 옵션
-    var _options = {
-        dictRemoveFile: '[삭제]', // 삭제버튼
-        dictDefaultMessage: '업로드할 이미지를 드래그해서 올려주세요.', // 드래그 영역 문구
-    };
-
-    // dropzone form init
-    $dropzoneForm.init("#form1", ".dropzone", _callback, _options);
+    });
 
 
 ## 기타
@@ -188,3 +179,6 @@ submit 시 deleteFileIds[] 배열로 파라미터 요청된다.
 2022-02-23
 * init
 * Readme 작성
+
+2022-09-21
+* 수정
