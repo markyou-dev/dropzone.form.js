@@ -67,7 +67,7 @@ dropzone.js (5.7.0 version):
     </form>
     <!-- ./form -->
     
-## 예제 (demo 참고)
+## 예제
 
     // dropzone form init
     $dropzoneForm.init("#form1", ".dropzone", {
