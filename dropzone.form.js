@@ -1,37 +1,20 @@
 /**
- * form submit 시 dropzone 으로 이미지를 업로드할 수 있는 기능
+ * dropzone 을 사용하여 올린이미지를, form 으로 넘길수 있는 플러그인
  */
 $dropzoneForm = (function () {
-    // 기본설정
-    Dropzone.autoDiscover = false;
-
     // form 설정
-    var _form = {
-        el: null, // form Element
-        action_url: null, // form action url
-        submit_btn: null, // form submit button
+    var _this = null; // form Element
+    var _ui = {  // form ui
+        submit_btn: null,
     };
-
-    // callback 함수설정
-    var _callback = {
-        getParams: function (el) { // getList 파라미터 설정
-
-        },
-        getList: function (myDropzone) { // getList 출력부분
-
-        },
-        beforeSubmit: function (e, _form, formData) {  // submit 요청전 동작
-
-        },
-        afterSubmit: function (e, _form, response) {  // submit 동작후 동작 (성공시에만)
-
-        },
-    };
+    var _action_url = null; // form action url
+    var _formdata = null; // form data
 
     // dropzone 설정
-    var _dropzones = [];
+    Dropzone.autoDiscover = false;
+    var _dzList = [];
     var _deleteFileIds = []; // 삭제할 파일 id 배열
-    var _config = {
+    var _dzOption = {
         url: null,
         params: null,
         paramName: null,
@@ -47,14 +30,7 @@ $dropzoneForm = (function () {
         dictRemoveFile: '<i class="fa fa-remove"></i>',
         acceptedFiles: 'image/*',
         init: function (o) {
-            var myDropzone = this; // closure
-            var params = myDropzone.options.params;
-            var paramName = myDropzone.options.paramName;
-
-            // id가 있는 경우만
-            if (params && paramName) {
-                _callback.getList(myDropzone);
-            }
+            _callbacks.getList(this);
         },
         removedfile: function (file) { // 삭제
             event.preventDefault();
@@ -68,48 +44,100 @@ $dropzoneForm = (function () {
         },
     };
 
-    // action
-    var _action = {
-        serialize: function () { // form data 직렬화 (이미지 포함)
-            var formData = new FormData(_form.el[0]);
+    // dropzone form 초기화
+    var init = function (fId, dzId, callbacks, dzOption) {
+        // 필수 라이브러리 체크
+        if (typeof $ == 'undefined') {
+            console.log("초기화실패 : jquery 가 없습니다.");
+            return false;
+        }
+        if ($().jquery < '3.1.1') {
+            console.warn('jquery 버전이 너무 낮아 안전하지 않습니다. (권장 : >= 3.1.1)');
+            // return false;
+        }
+        if (typeof Dropzone == 'undefined') {
+            console.log("초기화실패 : dropzone 이 없습니다.");
+            return false;
+        }
 
-            // 추가할 파일 오프젝트 append
-            _dropzones.forEach(dropzone => {
-                dropzone.files.forEach((file, i) => {
-                    formData.append(dropzone.options.paramName + '[' + i + ']', file);
-                });
-            });
+        // form 설정
+        _this = $(fId);
+        _action_url = _this.attr('action') ? _this.attr('action') : window.location.pathname;
+        _ui.submit_btn = _this.find('input[type=submit]');
 
-            // 삭제될 파일 id append
-            if (_deleteFileIds.length > 0) {
-                $.each(_deleteFileIds, function (i, fileId) {
-                    formData.append('deleteFileIds[' + i + ']', fileId);
-                });
-            }
+        // 필수 데이터 체크
+        if (!_this) {
+            alert('선택된 form 이 없습니다.');
+            return false;
+        }
+        if (!_action_url) {
+            alert('action url 이 없습니다.');
+            return false;
+        }
+        if (!_ui.submit_btn) {
+            alert('submit 버튼이 없습니다.');
+            return false;
+        }
 
-            return formData;
+        // callback 설정
+        $.extend(_callbacks, callbacks);
+
+        // dropzone 설정
+        setDropzone(dzId, dzOption);
+
+        // event handler 연결
+        setEventHandler();
+    };
+
+    // callback 함수설정
+    var _callbacks = {
+        getList: function (dz) { // getList 출력부분
         },
-        submit: function (e) {
-            // 파라미터 직렬화
-            var formData = _action.serialize();
+        beforeSubmit: function (f, ui, formdata) {  // submit 요청전 동작
+        },
+        afterSubmit: function (f, ui, response) {  // submit 동작후 동작 (성공시에만)
+        },
+    };
 
-            // submit 전 동작
-            var beforeAction = _callback.beforeSubmit(e, _form, formData);
-            if (beforeAction === false) {
-                return false;
-            }
+    // form data 직렬화 (이미지 포함)
+    var serialize = function () {
+        var formdata = new FormData(_this[0]);
 
-            // submit
+        // dropzone 파일 오브젝트 append
+        _dzList.forEach(dz => {
+            dz.files.forEach((file, i) => {
+                formdata.append(dz.options.paramName + '[' + i + ']', file);
+            });
+        });
+
+        // 삭제할 파일 id append
+        if (_deleteFileIds.length > 0) {
+            $.each(_deleteFileIds, function (i, fileId) {
+                formdata.append('deleteFileIds[' + i + ']', fileId);
+            });
+        }
+
+        _formdata = formdata;
+    };
+
+    // form submit
+    var submit = function () {
+        // 파라미터 직렬화
+        serialize();
+
+        // submit 전 콜백
+        if (_callbacks.beforeSubmit(_this, _ui, _formdata) !== false) {
+            // 비동기 submit
             $.ajax({
-                url: _form.action_url,
+                url: _action_url,
                 method: 'post',
-                data: formData,
+                data: _formdata,
                 dataType: 'json',
                 processData: false,
                 contentType: false,
                 success: function (response) {
-                    // submit 후 동작
-                    _callback.afterSubmit(e, _form, response);
+                    // submit 후 콜백
+                    _callbacks.afterSubmit(_this, _ui, response);
                 },
                 error: function (err) {
                     alert('에러메시지 : ' + err);
@@ -118,61 +146,30 @@ $dropzoneForm = (function () {
         }
     };
 
-    // 이벤트 핸들러 연결
-    var _addEventHandlers = function () {
-        // form submit
-        _form.el.find('input[type=submit]').on('click', function (e) {
+    // dropzone 설정
+    var setDropzone = function (dzId, dzOption) {
+        _dzOption.url = _action_url; // url 설정
+        $.extend(_dzOption, dzOption); // 추가옵션 병합
+
+        _this.find(dzId).each(function (i, dzElement) {
+            var paramName = $(dzElement).attr('name'); // 파일 name 속성
+            if (paramName) {
+                _dzOption.paramName = paramName;
+                _dzList.push(new Dropzone(dzElement, _dzOption));
+            }
+        });
+    };
+
+    // event handler 설정
+    var setEventHandler = function () {
+        _ui.submit_btn.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            _action.submit(e);
+            submit();
         });
     };
 
     return {
-        init: function (formEl, dropzoneEl, callback) { // 초기화 (필수)
-            // 파라미터 체크
-            if (!$(formEl)) {
-                alert('초기화된 form 이 없습니다.');
-                return false;
-            }
-
-            // form setting
-            _form.el = $(formEl);
-            _form.action_url = $(formEl).attr('action');
-            _form.submit_btn = $(formEl).find('input[type=submit]');
-
-            // action url 설정
-            _config.url = _form.action_url;
-
-            // 콜백함수 지정 (요청전)
-            if (callback.beforeSubmit) {
-                _callback.beforeSubmit = callback.beforeSubmit;
-            }
-
-            // 콜백함수 지정 (요청후)
-            if (callback.afterSubmit) {
-                _callback.afterSubmit = callback.afterSubmit;
-            }
-
-            // 콜백함수 지정 (파라미터 지정)
-            if (callback.getParams) {
-                _callback.getParams = callback.getParams;
-            }
-
-            // 콜백함수 지정 (dropzone 목록을 초기화)
-            if (callback.getList) {
-                _callback.getList = callback.getList;
-            }
-
-            // dropzone 생성
-            _form.el.find(dropzoneEl).each(function (i, el) {
-                _config.paramName = $(el).attr('name'); // 파일 파라미터 명
-                _config.params = _callback.getParams(el);
-                _dropzones.push(new Dropzone(el, _config));
-            });
-
-            // event handler 연결
-            _addEventHandlers();
-        }
+        init: init
     }
 })();
