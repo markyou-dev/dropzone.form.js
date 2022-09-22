@@ -71,16 +71,10 @@ dropzone.js (5.7.0 version):
 
     // dropzone form init
     $dropzoneForm.init("#form1", ".dropzone", {
-        getParams: function (el) { // 파라미터 지정 (getList 사용시)
-            return {
-                act: 'getList',
-                name: $(el).data('name'),
-            };
-        },
-        getList: function (myDropzone) { // 이미 등록된 파일리스트를 바인딩시킴
-            var params = myDropzone.options.params;
-            var paramName = myDropzone.options.paramName;
-            var url = myDropzone.options.url;
+        getList: function (dz) { // 이전에 등록한 이미지 목록을 구함
+            var params = {id : $(dz.element).data('id')}
+            var paramName = dz.options.paramName;
+            var url = dz.options.url;
 
             // list request
             $.ajax({
@@ -97,9 +91,9 @@ dropzone.js (5.7.0 version):
                                 id: item.id,
                                 name: paramName,
                             };
-                            myDropzone.emit("addedfile", mockFile);
-                            myDropzone.emit("thumbnail", mockFile, filepath);
-                            myDropzone.emit("complete", mockFile);
+                            dz.emit("addedfile", mockFile);
+                            dz.emit("thumbnail", mockFile, filepath);
+                            dz.emit("complete", mockFile);
                         });
                     }
                 },
@@ -108,12 +102,12 @@ dropzone.js (5.7.0 version):
                 }
             });
         },
-        beforeSubmit: function (e, _form, _formData) { // submit 전 동작
+        beforeSubmit: function (f, ui, formdata) { // submit 전 동작
             if (!confirm('before Submit Action!')) {
                 return false;
             }
         },
-        afterSubmit: function (e, _form, response) { // submit 후 동작
+        afterSubmit: function (f, ui, response) { // submit 후 동작
             console.log(response);
             return false;
         }
@@ -129,4 +123,7 @@ dropzone.js (5.7.0 version):
 * Readme 작성
 
 2022-09-21
+* 수정
+
+2022-09-22
 * 수정
